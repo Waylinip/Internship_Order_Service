@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - include:
+      file: db/changeSet/001-create-orders.yaml
+  - include:
+      file: db/changeSet/002-create-items.yaml
+  - include:
+      file: db/changeSet/003-create-order-items.yaml
+  - include:
+      file: db/changeSet/004-add-indexes.yaml
