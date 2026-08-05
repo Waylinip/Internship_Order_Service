@@ -37,7 +37,7 @@ public class Order extends Auditable{
 
     @ToString.Include
     @Column(name = "total_price", nullable = false, precision = 19, scale = 2)
-    private BigDecimal price;
+    private BigDecimal totalPrice;
 
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
