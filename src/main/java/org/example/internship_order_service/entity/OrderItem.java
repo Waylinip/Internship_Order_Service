@@ -20,7 +20,7 @@ public class OrderItem extends Auditable{
     @EqualsAndHashCode.Include
     private Long id;
 
-   @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
