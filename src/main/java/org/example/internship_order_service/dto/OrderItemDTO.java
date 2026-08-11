@@ -1,9 +1,6 @@
 package org.example.internship_order_service.dto;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -13,13 +10,13 @@ public class OrderItemDTO {
 
     private Long id;
 
-    @NotNull()
+    @NotNull
     private Long itemId;
 
-    @Size()
+    @NotBlank
     private String itemName;
 
-    @Positive()
+    @Positive
     private BigDecimal price;
 
     @Min(value = 1)
