@@ -4,8 +4,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.example.internship_order_service.client.UserServiceClient;
-import org.example.internship_order_service.dto.OrderDTO;
-import org.example.internship_order_service.dto.OrderItemDTO;
+import org.example.internship_order_service.dto.item.OrderItemRequestDTO;
+import org.example.internship_order_service.dto.order.OrderRequestDTO;
+import org.example.internship_order_service.dto.order.OrderResponseDTO;
 import org.example.internship_order_service.entity.Item;
 import org.example.internship_order_service.entity.Order;
 import org.example.internship_order_service.entity.OrderItem;
@@ -46,14 +47,14 @@ public class OrderService {
     private final UserServiceClient userServiceClient;
 
     @Transactional
-    public OrderDTO createOrder(OrderDTO orderDTO) {
-        if (orderDTO == null) {
+    public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) {
+        if (orderRequestDTO == null) {
             throw new IllegalArgumentException(ORDER_DTO_NULL);
         }
 
-        Order order = orderMapper.toEntity(orderDTO);
+        Order order = orderMapper.toEntity(orderRequestDTO);
 
-        List<OrderItem> orderItems = buildOrderItems(orderDTO.getOrderItems(), order);
+        List<OrderItem> orderItems = buildOrderItems(orderRequestDTO.getOrderItems(), order);
         order.setOrderItems(orderItems);
         order.setPrice(calculateTotalPrice(orderItems));
 
@@ -62,13 +63,13 @@ public class OrderService {
     }
 
 
-    public OrderDTO getOrderById(Long orderId) {
+    public OrderResponseDTO getOrderById(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException(ORDER_NOT_FOUND + orderId));
         return mapWithUserInfo(order);
     }
 
-    public List<OrderDTO> getOrdersByUserId(Long userId) {
+    public List<OrderResponseDTO> getOrdersByUserId(Long userId) {
         if(userId == null) {
             throw new IllegalArgumentException(USER_ID_NULL);
         }
@@ -77,7 +78,7 @@ public class OrderService {
                 .toList();
     }
 
-    public Page<OrderDTO> getAll(List<OrderStatus> statuses, LocalDateTime start, LocalDateTime end, Pageable pageable) {
+    public Page<OrderResponseDTO> getAll(List<OrderStatus> statuses, LocalDateTime start, LocalDateTime end, Pageable pageable) {
         Specification<Order> specification = Specification
                 .where(OrderSpecifications.hasStatuses(statuses))
                 .and(OrderSpecifications.createdBetween(start, end));
@@ -87,16 +88,12 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDTO updateOrder(Long id, OrderDTO dto) {
+    public OrderResponseDTO updateOrder(Long id, OrderRequestDTO dto) {
         if (dto == null) {
             throw new IllegalArgumentException(ORDER_DTO_NULL);
         }
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ORDER_NOT_FOUND + id));
-
-        if (dto.getStatus() != null) {
-            order.setStatus(dto.getStatus());
-        }
 
         if (dto.getOrderItems() != null) {
             order.getOrderItems().clear();
@@ -110,6 +107,19 @@ public class OrderService {
         return mapWithUserInfo(savedOrder);
     }
 
+
+    @Transactional
+    public OrderResponseDTO updateOrderStatus(Long id, OrderStatus status) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(ORDER_NOT_FOUND + id));
+
+        order.setStatus(status);
+
+        Order savedOrder = orderRepository.save(order);
+        return mapWithUserInfo(savedOrder);
+    }
+
+
     @Transactional
     public void deleteOrder(Long id) {
         Order order = orderRepository.findById(id)
@@ -117,15 +127,15 @@ public class OrderService {
         orderRepository.delete(order);
     }
 
-    private List<OrderItem> buildOrderItems(List<OrderItemDTO> itemDTOs, Order order) {
+    private List<OrderItem> buildOrderItems(List<OrderItemRequestDTO> itemDTOs, Order order) {
         List<Long> itemIds = itemDTOs.stream()
-                .map(OrderItemDTO::getItemId)
+                .map(OrderItemRequestDTO::getItemId)
                 .toList();
 
         Map<Long, Item> itemsById = findItemsByIds(itemIds);
 
         List<OrderItem> orderItems = new ArrayList<>();
-        for (OrderItemDTO itemDto : itemDTOs) {
+        for (OrderItemRequestDTO itemDto : itemDTOs) {
             Item item = itemsById.get(itemDto.getItemId());
 
             OrderItem orderItem = new OrderItem();
@@ -157,8 +167,8 @@ public class OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private OrderDTO mapWithUserInfo(Order order) {
-        OrderDTO dto = orderMapper.toDTO(order);
+    private OrderResponseDTO mapWithUserInfo(Order order) {
+        OrderResponseDTO dto = orderMapper.toResponseDto(order);
         dto.setUser(userServiceClient.getUserById(order.getUserId()));
         return dto;
     }
