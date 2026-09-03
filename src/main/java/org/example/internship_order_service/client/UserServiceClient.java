@@ -22,6 +22,14 @@ public class UserServiceClient {
                 .body(UserDTO.class);
     }
 
+    @CircuitBreaker(name = "userServiceBreaker", fallbackMethod = "fallbackGetUser")
+    public UserDTO getUserByAuthUserId(Long authUserId) {
+        return userServiceRestClient.get()
+                .uri("/api/internal/users/auth/{authUserId}", authUserId)
+                .retrieve()
+                .body(UserDTO.class);
+    }
+
     private UserDTO fallbackGetUser(Long id, Throwable t) {
         log.warn("User Service unavailable, returning order without user info. userId={}, cause={}",
                 id, t.getMessage());

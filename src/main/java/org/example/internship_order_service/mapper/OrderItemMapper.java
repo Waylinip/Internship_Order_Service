@@ -1,6 +1,7 @@
 package org.example.internship_order_service.mapper;
 
-import org.example.internship_order_service.dto.OrderItemDTO;
+import org.example.internship_order_service.dto.item.OrderItemRequestDTO;
+import org.example.internship_order_service.dto.item.OrderItemResponseDTO;
 import org.example.internship_order_service.entity.OrderItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -11,10 +12,10 @@ public interface OrderItemMapper {
     @Mapping(target = "itemId", source = "item.id")
     @Mapping(target = "itemName", source = "item.name")
     @Mapping(target = "price", source = "item.price")
-    OrderItemDTO toDto(OrderItem orderItem);
+    OrderItemResponseDTO toResponseDto(OrderItem orderItem);
 
-    @Mapping(target = "item.id", source = "itemId")
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "item", ignore = true)
     @Mapping(target = "order", ignore = true)
-    OrderItem toEntity(OrderItemDTO orderItemDto);
+    OrderItem toEntity(OrderItemRequestDTO dto);
 }
