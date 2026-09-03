@@ -21,13 +21,10 @@ public class OrderSpecifications {
 
 
     public static Specification<Order> hasStatuses(List<OrderStatus> statuses) {
-
         return (root, query, cb) -> {
-
             if (statuses == null || statuses.isEmpty()) {
                 return cb.conjunction();
             }
-
             return root.get("status").in(statuses);
         };
     }
